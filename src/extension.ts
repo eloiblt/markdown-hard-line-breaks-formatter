@@ -1,5 +1,3 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
 function replaceSoftBreaks(text: string): string {
@@ -7,7 +5,6 @@ function replaceSoftBreaks(text: string): string {
 }
 
 async function formatWithRemark(markdown: string): Promise<string> {
-  // Dynamically import the ECMAScript modules (same approach for desktop)
   const [
     { default: remarkStringify },
     { default: remarkDirective },
@@ -33,7 +30,6 @@ async function formatWithRemark(markdown: string): Promise<string> {
     .use(remarkGfm)
     .use(remarkMath)
     .use(remarkStringify, {
-      // existing breaks will be replaced with hard breaks
       handlers: {
         break: () => "  \n",
       },
@@ -44,14 +40,7 @@ async function formatWithRemark(markdown: string): Promise<string> {
   return String(file);
 }
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "eloiblt" is now active in VS Code Desktop!');
-
 	const formattingProvider: vscode.DocumentFormattingEditProvider = {
 		async provideDocumentFormattingEdits(
 			document: vscode.TextDocument
@@ -78,5 +67,4 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 }
 
-// This method is called when your extension is deactivated
 export function deactivate() {}
