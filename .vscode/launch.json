@@ -6,7 +6,7 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Run Web Extension ",
+			"name": "Run Web Extension",
 			"type": "extensionHost",
 			"debugWebWorkerHost": true,
 			"request": "launch",
@@ -17,22 +17,19 @@
 			"outFiles": [
 				"${workspaceFolder}/dist/web/**/*.js"
 			],
-			"preLaunchTask": "${defaultBuildTask}"
+			"preLaunchTask": "npm: compile-web"
 		},
-		{
-			"name": "Extension Tests",
+    {
+			"name": "Run Desktop Extension",
 			"type": "extensionHost",
-			"debugWebWorkerHost": true,
 			"request": "launch",
 			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--extensionDevelopmentKind=web",
-				"--extensionTestsPath=${workspaceFolder}/dist/web/test/suite/index"
+				"--extensionDevelopmentPath=${workspaceFolder}"
 			],
 			"outFiles": [
-				"${workspaceFolder}/dist/web/**/*.js"
+				"${workspaceFolder}/out/**/*.js"
 			],
-			"preLaunchTask": "${defaultBuildTask}"
+			"preLaunchTask": "npm: watch-desktop"
 		}
 	]
 }
