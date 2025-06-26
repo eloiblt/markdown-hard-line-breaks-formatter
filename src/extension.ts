@@ -52,7 +52,9 @@ async function formatWithRemark(markdown: string): Promise<string> {
   //     },
   //   });
 
-  const file = await processor.process("SUBSCRIBER_MAP and A_B_C");
+  const file = await processor.process("SUBSCRIBER_MAP and A_B_C_D_E");
+
+  console.log("File processed:", file);
 
   return String(file);
 }

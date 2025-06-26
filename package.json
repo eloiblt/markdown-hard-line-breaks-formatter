@@ -21,7 +21,6 @@
     "compile-desktop": "webpack --config-name desktopExtensionConfig",
     "compile-web": "webpack --config-name webExtensionConfig",
     "watch-desktop": "webpack --config-name desktopExtensionConfig --watch",
-    "watch": "tsc -watch -p ./",
     "watch-web": "webpack --config-name webExtensionConfig --watch",
     "package-desktop": "webpack --config-name desktopExtensionConfig --mode production --devtool hidden-source-map",
     "package-web": "webpack --config-name webExtensionConfig --mode production --devtool hidden-source-map",

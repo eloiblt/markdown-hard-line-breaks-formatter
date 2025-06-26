@@ -5,34 +5,47 @@
   "tasks": [
     {
       "type": "npm",
-      "script": "compile-web",
+      "script": "watch-web",
+      "isBackground": true,
       "group": {
         "kind": "build",
         "isDefault": true
       },
-      "problemMatcher": ["$ts-webpack", "$tslint-webpack"]
+      "problemMatcher": [
+        {
+          "owner": "webpack",
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "\\[webpack-cli\\]",
+            "endsPattern": "compiled successfully"
+          },
+          "pattern": {
+            "regexp": "a^"
+          }
+        }
+      ]
     },
     {
       "type": "npm",
-      "script": "compile-desktop",
+      "script": "watch-desktop",
+      "isBackground": true,
       "group": {
         "kind": "build",
         "isDefault": true
       },
-      "problemMatcher": ["$ts-webpack", "$tslint-webpack"]
-    },
-    {
-			"type": "npm",
-			"script": "watch",
-			"problemMatcher": "$tsc-watch",
-			"isBackground": true,
-			"presentation": {
-				"reveal": "never"
-			},
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			}
-		}
+      "problemMatcher": [
+        {
+          "owner": "webpack",
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "\\[webpack-cli\\]",
+            "endsPattern": "compiled successfully"
+          },
+          "pattern": {
+            "regexp": "a^"
+          }
+        }
+      ]
+    }
   ]
 }
