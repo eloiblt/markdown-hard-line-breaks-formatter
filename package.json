@@ -9,16 +9,11 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:markdown"
+  ],
   "browser": "./dist/web/extension.js",
-  "contributes": {
-    "commands": [
-      {
-        "command": "eloiblt.helloWorld",
-        "title": "Hello World"
-      }
-    ]
-  },
+  "contributes": {},
   "scripts": {
     "test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/index.js",
     "pretest": "npm run compile-web",
@@ -45,5 +40,16 @@
     "@types/webpack-env": "^1.18.8",
     "assert": "^2.1.0",
     "process": "^0.11.10"
+  },
+  "dependencies": {
+    "rehype-stringify": "^10.0.1",
+    "remark": "^15.0.1",
+    "remark-directive": "^4.0.0",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
+    "remark-parse": "^11.0.0",
+    "remark-stringify": "^11.0.0",
+    "unified": "^11.0.5"
   }
 }
