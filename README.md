@@ -8,15 +8,15 @@ This extension allows you to :
 ## Examples
 
 ```md
-test1
+test1  
 test2
 ```
 
 Will be rendered as :
 
 ```md
-test1__
+test1\_\_  
 test2
 ```
 
-Where _ is a space.
+Where \_ is a space.

@@ -14,6 +14,7 @@ const webpack = require('webpack');
 
 /** @type WebpackConfig */
 const webExtensionConfig = {
+	name: 'webExtensionConfig',
 	mode: 'none', // this leaves the source code as close as possible to the original (when packaging we set this to 'production')
 	target: 'webworker', // extensions run in a webworker context
 	entry: {
@@ -21,9 +22,9 @@ const webExtensionConfig = {
 	},
 	output: {
 		filename: '[name].js',
-		path: path.join(__dirname, './dist-web/'),
+		path: path.join(__dirname, './dist/web/'),
 		libraryTarget: 'commonjs',
-		devtoolModuleFilenameTemplate: '../../[resource-path]'
+		devtoolModuleFilenameTemplate: '../[resource-path]'
 	},
 	resolve: {
 		mainFields: ['browser', 'module', 'main'], // look for `browser` entry point in imported node modules
@@ -67,4 +68,47 @@ const webExtensionConfig = {
 	},
 };
 
-module.exports = [ webExtensionConfig ];
+/** @type WebpackConfig */
+const desktopExtensionConfig = {
+	name: 'desktopExtensionConfig',
+	mode: 'none',
+	target: 'node', // extensions run in a Node.js context
+	entry: {
+		'extension': './src/extension.ts',
+	},
+	output: {
+		filename: '[name].js',
+		path: path.join(__dirname, './dist/desktop/'),
+		libraryTarget: 'commonjs2',
+		devtoolModuleFilenameTemplate: '../[resource-path]'
+	},
+	resolve: {
+		extensions: ['.ts', '.js'],
+	},
+	module: {
+		rules: [{
+			test: /\.ts$/,
+			exclude: /node_modules/,
+			use: [{
+				loader: 'ts-loader'
+			}]
+		}]
+	},
+	plugins: [
+		new webpack.optimize.LimitChunkCountPlugin({
+			maxChunks: 1 // disable chunks for single bundle
+		}),
+	],
+	externals: {
+		'vscode': 'commonjs vscode',
+	},
+	performance: {
+		hints: false
+	},
+	devtool: 'source-map',
+	infrastructureLogging: {
+		level: "log",
+	},
+};
+
+module.exports = [ webExtensionConfig, desktopExtensionConfig ];

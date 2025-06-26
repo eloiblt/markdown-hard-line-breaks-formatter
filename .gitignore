@@ -1,6 +1,5 @@
 out
-dist-desktop
-dist-web
+dist
 node_modules
 .vscode-test-web/
 *.vsix
