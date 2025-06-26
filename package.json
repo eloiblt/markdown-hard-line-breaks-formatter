@@ -1,8 +1,9 @@
 {
   "name": "markdown-hard-line-breaks-formatter",
-  "displayName": "markdown-hard-line-breaks-formatter",
-  "description": "markdown-hard-line-breaks-formatter",
+  "displayName": "Markdown Hard Line Breaks Formatter",
+  "description": "Markdown Hard Line Breaks Formatter",
   "version": "0.0.1",
+  "publisher": "eloiblt",
   "engines": {
     "vscode": "^1.101.0"
   },
