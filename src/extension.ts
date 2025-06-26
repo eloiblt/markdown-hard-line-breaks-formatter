@@ -12,7 +12,29 @@ const remarkMath = require("remark-math").default;
 const stringWidth = require("string-width").default;
 
 function replaceSoftBreaks(text: string): string {
-  return text.replace(/([^\s])\n(?=[^\n])/g, "$1  \n");
+  try {
+    console.log('replaceSoftBreaks: trying regex method');
+    return text.replace(/([^\s])\n(?=[^\n])/g, "$1  \n");
+  } catch (error) {
+    console.log('replaceSoftBreaks: regex failed, using fallback', error);
+    // Fallback pour VS Code Web - version plus simple
+    const lines = text.split('\n');
+    const result: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const nextLine = lines[i + 1];
+
+      if (line && !line.endsWith('  ') && nextLine && nextLine.trim() !== '') {
+        result.push(line + '  ');
+      } else {
+        result.push(line);
+      }
+    }
+
+    console.log('replaceSoftBreaks: fallback completed');
+    return result.join('\n');
+  }
 }
 
 function removeUnderscores(
@@ -67,14 +89,22 @@ async function formatWithRemark(markdown: string): Promise<string> {
 }
 
 export function activate(context: vscode.ExtensionContext) {
+  console.log('Markdown formatter extension activated');
+
   const formattingProvider: vscode.DocumentFormattingEditProvider = {
     async provideDocumentFormattingEdits(
       document: vscode.TextDocument
     ): Promise<vscode.TextEdit[]> {
+      console.log('Formatting requested for document:', document.fileName);
+
       const fullText = document.getText();
+      console.log('Original text length:', fullText.length);
 
       const formatted = await formatWithRemark(fullText);
+      console.log('After formatWithRemark, length:', formatted.length);
+
       const withHardBreaks = replaceSoftBreaks(formatted);
+      console.log('After replaceSoftBreaks, length:', withHardBreaks.length);
 
       const fullRange = new vscode.Range(
         document.positionAt(0),
