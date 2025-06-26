@@ -1,62 +1,69 @@
 import * as vscode from "vscode";
 
+// const Context = require("mdast-util-to-markdown").Context;
+// const SafeOptions = require("mdast-util-to-markdown").SafeOptions;
+const { unified } = require("unified");
+const remarkParse = require("remark-parse").default;
+const remarkStringify = require("remark-stringify").default;
+const remarkDirective = require("remark-directive").default;
+const remarkFrontmatter = require("remark-frontmatter").default;
+const remarkGfm = require("remark-gfm").default;
+const remarkMath = require("remark-math").default;
+const stringWidth = require("string-width").default;
+
 function replaceSoftBreaks(text: string): string {
   return text.replace(/([^\s])\n(?=[^\n])/g, "$1  \n");
 }
 
-async function formatWithRemark(markdown: string): Promise<string> {
-  const [
-    { default: remarkStringify },
-    { default: remarkDirective },
-    { default: remarkFrontmatter },
-    { default: remarkGfm },
-    { default: remarkMath },
-    { default: remarkParse },
-    { unified },
-  ] = await Promise.all([
-    import("remark-stringify"),
-    import("remark-directive"),
-    import("remark-frontmatter"),
-    import("remark-gfm"),
-    import("remark-math"),
-    import("remark-parse"),
-    import("unified"),
-  ]);
+function removeUnderscores(
+  node: any,
+  parent: any,
+  context: any,
+  safeOptions: any
+) {
+  // Garde les underscores mais échappe les autres caractères spéciaux si nécessaire
+  let result = node.value;
 
+  // Échappe sélectivement selon le contexte
+  const parentType = parent?.type;
+  const isInLink = parentType === "link" || parentType === "linkReference";
 
-  const processor = unified()
-  .use(remarkParse)       // juste le parser CommonMark de base
-  .use(remarkStringify, {
-    emphasis: '*',
-    strong: '*',
-    bullet: '-',
-    handlers: {
-    },
+  if (!isInLink) {
+    result = result.replace(/\[/g, "\\[").replace(/\]/g, "\\]"); // Crochets seulement hors liens
+  }
+
+  // Échappe les astérisques seulement s'ils pourraient être interprétés comme emphasis/strong
+  result = result.replace(/(\*+)/g, (match: string) => {
+    // Échappe seulement si c'est 1 ou 2 astérisques consécutifs (emphasis/strong)
+    return match.length <= 2 ? "\\" + match : match;
   });
 
-  // const processor = unified()
-  //   .use(remarkParse)
-  //   .use(remarkDirective)
-  //   .use(remarkFrontmatter)
-  //   .use(remarkGfm)
-  //   .use(remarkMath)
-  //   .use(remarkStringify, {
-  //     bullet: "-",
-  //     emphasis: "*",
-  //     strong: "*",
-  //     unsafe: [],
+  // Échappe les backticks seulement s'ils ne sont pas déjà dans du code
+  result = result.replace(/`/g, "\\`");
 
-  //     // existing breaks will be replaced with hard breaks
-  //     handlers: {
-  //       break: () => "  \n",
-  //     },
-  //   });
+  return result;
+}
 
-  const file = await processor.process("SUBSCRIBER_MAP and A_B_C_D_E");
+async function formatWithRemark(markdown: string): Promise<string> {
+  const processor = unified()
+    .use(remarkParse)
+    .use(remarkDirective)
+    .use(remarkFrontmatter)
+    .use(remarkGfm, { stringLength: stringWidth })
+    .use(remarkMath)
+    .use(remarkStringify, {
+      emphasis: "*",
+      strong: "*",
+      bullet: "-",
+      fences: true,
+      handlers: {
+        break: () => "  \n",
+        text: (node: any, parent: any, context: any, safeOptions: any) =>
+          removeUnderscores(node, parent, context, safeOptions),
+      },
+    });
 
-  console.log("File processed:", file);
-
-  return String(file);
+  return String(await processor.process(markdown));
 }
 
 export function activate(context: vscode.ExtensionContext) {
