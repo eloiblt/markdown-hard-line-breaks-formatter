@@ -27,6 +27,7 @@
     "package-desktop": "webpack --config-name desktopExtensionConfig --mode production --devtool hidden-source-map",
     "package-web": "webpack --config-name webExtensionConfig --mode production --devtool hidden-source-map",
     "lint": "eslint src",
+    "debug": "tsc && node ./dist/desktop/debug/index.js",
     "run-in-browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. ."
   },
   "devDependencies": {
