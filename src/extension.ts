@@ -1,7 +1,5 @@
 import * as vscode from "vscode";
 
-// const Context = require("mdast-util-to-markdown").Context;
-// const SafeOptions = require("mdast-util-to-markdown").SafeOptions;
 const { unified } = require("unified");
 const remarkParse = require("remark-parse").default;
 const remarkStringify = require("remark-stringify").default;
@@ -11,29 +9,91 @@ const remarkGfm = require("remark-gfm").default;
 const remarkMath = require("remark-math").default;
 const stringWidth = require("string-width").default;
 
-function replaceSoftBreaks(text: string): string {
+function replaceSoftBreaks(markdown: string): string {
   try {
-    console.log('replaceSoftBreaks: trying regex method');
-    return text.replace(/([^\s])\n(?=[^\n])/g, "$1  \n");
-  } catch (error) {
-    console.log('replaceSoftBreaks: regex failed, using fallback', error);
-    // Fallback pour VS Code Web - version plus simple
-    const lines = text.split('\n');
-    const result: string[] = [];
+    const lines = markdown.split("\n");
+    const result = [];
 
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
+      const currentLine = lines[i];
       const nextLine = lines[i + 1];
 
-      if (line && !line.endsWith('  ') && nextLine && nextLine.trim() !== '') {
-        result.push(line + '  ');
+      // Si on est à la dernière ligne, pas de transformation
+      if (!nextLine) {
+        result.push(currentLine);
+        continue;
+      }
+
+      // Ignorer les hard breaks qui existent déjà
+      if (currentLine.endsWith("  ")) {
+        result.push(currentLine);
+        continue;
+      }
+
+      // Ignorer les lignes vides
+      if (currentLine.trim() === "" || nextLine.trim() === "") {
+        result.push(currentLine);
+        continue;
+      }
+
+      // Ignorer les titres (# ## ### etc.)
+      if (currentLine.match(/^\s*#{1,6}\s/) || nextLine.match(/^\s*#{1,6}\s/)) {
+        result.push(currentLine);
+        continue;
+      }
+
+      // Ignorer les listes (- * + ou numérotées)
+      if (
+        currentLine.match(/^\s*[-*+]\s/) ||
+        currentLine.match(/^\s*\d+\.\s/) ||
+        nextLine.match(/^\s*[-*+]\s/) ||
+        nextLine.match(/^\s*\d+\.\s/)
+      ) {
+        result.push(currentLine);
+        continue;
+      }
+
+      // Ignorer les blocs de code (```)
+      if (currentLine.match(/^\s*```/) || nextLine.match(/^\s*```/)) {
+        result.push(currentLine);
+        continue;
+      }
+
+      // Ignorer les citations (>)
+      if (currentLine.match(/^\s*>/) || nextLine.match(/^\s*>/)) {
+        result.push(currentLine);
+        continue;
+      }
+
+      // Ignorer les tableaux (lignes contenant |)
+      if (currentLine.includes("|") || nextLine.includes("|")) {
+        result.push(currentLine);
+        continue;
+      }
+
+      // Ignorer les lignes de séparation (---)
+      if (
+        currentLine.match(/^\s*-{3,}\s*$/) ||
+        nextLine.match(/^\s*-{3,}\s*$/)
+      ) {
+        result.push(currentLine);
+        continue;
+      }
+
+      // Si la ligne actuelle a du contenu (pas vide après trim)
+      // et que la ligne suivante existe et n'est pas vide
+      // alors on ajoute un hard break
+      if (currentLine.trim() !== "") {
+        result.push(currentLine + "  ");
       } else {
-        result.push(line);
+        result.push(currentLine);
       }
     }
 
-    console.log('replaceSoftBreaks: fallback completed');
-    return result.join('\n');
+    return result.join("\n");
+  } catch (error) {
+    console.log("replaceSoftBreaks: replacement failed", error);
+    throw error;
   }
 }
 
@@ -55,7 +115,7 @@ function removeUnderscores(
   }
 
   // Échappe les astérisques seulement s'ils pourraient être interprétés comme emphasis/strong
-  result = result.replace(/(\*+)/g, (match: string) => {
+  result = result.replace(/(\*+)/g, (match: any) => {
     // Échappe seulement si c'est 1 ou 2 astérisques consécutifs (emphasis/strong)
     return match.length <= 2 ? "\\" + match : match;
   });
@@ -82,6 +142,21 @@ async function formatWithRemark(markdown: string): Promise<string> {
         break: () => "  \n",
         text: (node: any, parent: any, context: any, safeOptions: any) =>
           removeUnderscores(node, parent, context, safeOptions),
+        // Empêche la transformation des URLs en <url>
+        link: (node: any, parent: any, context: any, safeOptions: any) => {
+          // Récupère le texte visible du lien
+          const linkText = node.children
+            .map((child: any) => child.value || "")
+            .join("");
+
+          // Si le texte visible === URL, c'est un lien automatique
+          if (linkText === node.url) {
+            return node.url;
+          }
+
+          // Sinon, format normal [text](url)
+          return `[${linkText}](${node.url})`;
+        },
       },
     });
 
@@ -89,22 +164,18 @@ async function formatWithRemark(markdown: string): Promise<string> {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('Markdown formatter extension activated');
+  console.log("Markdown formatter extension activated");
 
   const formattingProvider: vscode.DocumentFormattingEditProvider = {
     async provideDocumentFormattingEdits(
       document: vscode.TextDocument
     ): Promise<vscode.TextEdit[]> {
-      console.log('Formatting requested for document:', document.fileName);
+      console.log("Formatting requested for document:", document.fileName);
 
       const fullText = document.getText();
-      console.log('Original text length:', fullText.length);
 
       const formatted = await formatWithRemark(fullText);
-      console.log('After formatWithRemark, length:', formatted.length);
-
       const withHardBreaks = replaceSoftBreaks(formatted);
-      console.log('After replaceSoftBreaks, length:', withHardBreaks.length);
 
       const fullRange = new vscode.Range(
         document.positionAt(0),
