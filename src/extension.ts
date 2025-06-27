@@ -11,7 +11,9 @@ const stringWidth = require("string-width").default;
 
 function replaceSoftBreaks(markdown: string): string {
   try {
-    const lines = markdown.split("\n");
+    // Normaliser les fins de ligne (Windows \r\n -> Unix \n)
+    const normalizedMarkdown = markdown.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const lines = normalizedMarkdown.split("\n");
     const result = [];
 
     for (let i = 0; i < lines.length; i++) {
